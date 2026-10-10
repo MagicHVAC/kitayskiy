@@ -1,6 +1,8 @@
 'use strict';
-const APP = {ver:'1.1.0', date:'10.10.2026'};
+const APP = {ver:'1.2.0', date:'10.10.2026'};
 const NEWS = [
+ 'Главное — новый курс «Разговор на улице»: 30 уроков по ситуациям (дорога, кафе, рынок, покупки, встречи, гостиница, аптека, разговор с попутчиком). Сотни фраз-подстановок, диалоги по ролям, задания «скажи», «пойми», «собери», ситуации и смешанная тренировка.',
+ 'Слова уроков (地铁, 洗手间, 附近…) сами попадают в карточки и словарь.',
  'Словарь вырос до 300 слов: добавлен уровень HSK 2.',
  'Новая вкладка «Правила»: 15 уроков грамматики с упражнением «собери предложение» и тренажёр чисел, цен, времени и дат.',
  'Вкладка «Речь»: 8 диалогов по ролям (можно говорить за одного из героев) и аудирование.',
@@ -26,6 +28,17 @@ function addXP(n){ S.xp=(S.xp||0)+n; const r=dayRec(); const before=r.xp||0; r.x
 const $ = s => document.querySelector(s);
 const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
 const pick = a => a[Math.random()*a.length|0];
+// Тексты для кнопок храним в реестре: в onclick передаём номер, а не строку
+const TX = [];
+function R(t){ TX.push(t); return TX.length-1; }
+function sayI(i, rate, who){ say(TX[i], rate, who); }
+function slowI(i){ say(TX[i], 0.5); }
+function listenI(i, outId){ listen(TX[i], outId); }
+function audioBtns(text, micId, who){
+  const i = R(text);
+  return `<button class="btn" onclick="sayI(${i},0,'${who||''}')" aria-label="Послушать">🔊</button><button class="btn" onclick="slowI(${i})">🐢</button>`
+    + (micId ? `<button class="btn" onclick="listenI(${i},'${micId}')">🎤</button>` : '');
+}
 const esc = s => String(s).replace(/'/g,"\\'");
 let toastT;
 function toast(m, ms){ const t=$('#toast'); t.innerHTML=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), ms||2200); }
@@ -64,7 +77,7 @@ function pickVoice(){
   zhVoice = vs.find(v=>v.name===S.settings.voice) || vs.find(v=>/zh[-_]CN/i.test(v.lang)) || vs[0] || null;
   zhVoiceB = vs.find(v=>v!==zhVoice) || null;
 }
-if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if(S.tab==='home') renderHome(); }; }
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); try{ if(S.tab==='home' && !CL) renderHome(); }catch(e){} }; }
 function utter(text, rate, who){
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'zh-CN';
@@ -156,7 +169,7 @@ function strokes(hz, elId, quiz){
 const TABS = {home:()=>renderHome(), sounds:()=>renderSounds(), words:()=>wordsEnter(), talk:()=>renderTalk(),
   read:()=>renderRead(), rules:()=>renderRules(), stats:()=>renderStats()};
 function show(tab){
-  stopSay();
+  stopSay(); TX.length = 0;
   S.tab = tab; save();
   document.querySelectorAll('main section').forEach(s => s.hidden = s.id !== 't-'+tab);
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t===tab));

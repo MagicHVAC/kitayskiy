@@ -1,12 +1,12 @@
 // Работа без интернета: свои файлы — сначала из сети (свежая версия), при отсутствии сети — из кэша.
 // Шрифты и библиотека порядка черт — из кэша, если уже скачаны.
-const CACHE = 'kitayskiy-1.1.0';
-const V = '?v=1.1.0';
+const CACHE = 'kitayskiy-1.2.0';
+const V = '?v=1.2.0';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-512.png'].concat(
-  ['data_base','data_more','core','tab_home','tab_sounds','tab_words','tab_talk','tab_read','tab_rules','tab_stats','main'].map(f => 'js/' + f + '.js' + V));
+  ['data_base','data_more','course_data','core','lang','course','tab_home','tab_sounds','tab_words','tab_talk','tab_read','tab_rules','tab_stats','main'].map(f => 'js/' + f + '.js' + V));
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('kitayskiy-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;

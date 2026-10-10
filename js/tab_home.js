@@ -18,19 +18,14 @@ function streak(){ let n=0; const d=new Date(); for(;;){ const k=d.getFullYear()
 function levelOf(xp){ let lv=1, need=50, acc=0; while(xp>=acc+need){ acc+=need; lv++; need=Math.round(need*1.3); } return {lv, cur:xp-acc, need}; }
 function closeNews(){ S.seenVer=APP.ver; save(); renderHome(); }
 function renderHome(){
+  if(CL) return renderStep();
   const c=counts(), r=dayRec(), wd=pick(WORDS), L=levelOf(S.xp||0), g=S.settings.goal, dx=r.xp||0;
   const newLeft=Math.max(0,S.settings.newPerDay-r.nw);
   const news = S.seenVer===APP.ver ? '' : `<div class="card news"><b>Что нового в версии ${APP.ver}</b>
     <ul>${NEWS.map(n=>'<li>'+n+'</li>').join('')}</ul><button class="btn" onclick="closeNews()">Понятно</button></div>`;
-  const plan = [
-    ['Тоны: 5 минут тренажёра','sounds','Звуки'],
-    ['Карточки: повторение и новые слова','words','Слова'],
-    ['Диалог или 3–5 фраз вслух','talk','Речь'],
-    ['Одно правило и «собери предложение»','rules','Правила'],
-    ['2–3 предложения и прописи','read','Чтение']];
   $('#t-home').innerHTML = voiceWarn() + news + `
   <div class="card"><h2>你好！Добро пожаловать</h2>
-   <div class="mut">Учим с нуля: звуки и тоны → слова → фразы и диалоги → правила → чтение. 15–20 минут в день лучше, чем 2 часа раз в неделю.</div>
+   <div class="mut">Главное — курс «Разговор на улице»: один урок в день, 30 уроков. Слова повторяйте в карточках, тоны тренируйте во вкладке «Звуки».</div>
    <div style="margin-top:10px"><div class="row" style="justify-content:space-between"><b>Цель дня: ${Math.min(dx,g)} / ${g} очков</b><span class="mut">${dx>=g?'✅ выполнена':''}</span></div>
     <div class="bar" style="margin-top:4px"><i style="width:${Math.min(100,dx/g*100)}%"></i></div>
     <div class="mut" style="margin-top:4px">Уровень ${L.lv} · ${L.cur} / ${L.need} до следующего · всего ${S.xp||0} очков</div></div>
@@ -40,9 +35,7 @@ function renderHome(){
     <div><b>${c.known}</b><span class="mut">слов выучено из ${WORDS.length}</span></div>
     <div><b>${streak()}</b><span class="mut">дней подряд</span></div>
    </div></div>
-  <div class="card"><h3 style="margin-top:0">План на сегодня</h3>
-   ${plan.map((p,i)=>`<div class="row" style="justify-content:space-between"><span>${i+1}. ${p[0]}</span><button class="btn" onclick="show('${p[1]}')">${p[2]} →</button></div>`).join('')}
-  </div>
+  ${courseBlock()}
   <div class="card center"><div class="mut">Случайное слово</div>
    <div class="hz big" style="cursor:pointer" onclick="say('${wd[0]}')">${colorHz(wd[0],wd[1])}</div>
    <div class="py">${colorPy(wd[1])}</div><div>${wd[2]}</div>

@@ -20,7 +20,7 @@ function wordsEnter(){
    <div class="card" id="card"></div>
    <div class="row"><button class="btn" onclick="startQuiz()" style="flex:1">🧩 Тест из 10 вопросов</button></div>
    <details class="card"><summary><b>📖 Весь словарь (${WORDS.length})</b></summary>
-    <div class="seg" style="margin-top:8px">${[[0,'Все'],[1,'HSK 1'],[2,'HSK 2']].map(([k,l])=>`<button class="${DL===k?'on':''}" onclick="DL=${k};wordsEnter();document.querySelector('#t-words details').open=true">${l}</button>`).join('')}</div>
+    <div class="seg" style="margin-top:8px">${[[0,'Все'],[1,'HSK 1'],[2,'HSK 2'],[3,'Курс']].map(([k,l])=>`<button class="${DL===k?'on':''}" onclick="DL=${k};wordsEnter();document.querySelector('#t-words details').open=true">${l}</button>`).join('')}</div>
     <input type="search" id="dsearch" placeholder="Поиск: иероглиф, пиньинь или перевод" oninput="renderDict(this.value)" style="margin:8px 0">
     <div class="mut">● серый — новое, ● оранжевый — изучается, ● зелёный — выучено</div><div id="dict"></div></details>`;
   if(QZ) renderQuiz(); else { if(!Q.length) buildQueue(); renderCard(); }
@@ -48,7 +48,7 @@ function renderCard(){
   cur = Q[0];
   const isNew = !S.srs[cur[0]], m = S.settings.mode;
   if(isNew){
-    box.innerHTML = `<span class="badge">новое слово · HSK ${cur[3]}</span>${wordBack(cur,'c')}
+    box.innerHTML = `<span class="badge">новое слово · ${cur[3]===3?'курс':'HSK '+cur[3]}</span>${wordBack(cur,'c')}
      <div class="mut center" style="margin-top:6px">Послушайте 2–3 раза и повторите вслух. Через пару карточек оно вернётся для проверки.</div>
      <button class="primary" onclick="introduce()">Запомнил, дальше</button>`;
     if(S.settings.autoplay) setTimeout(()=>say(cur[0]),250);
