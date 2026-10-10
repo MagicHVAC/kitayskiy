@@ -71,9 +71,11 @@ function courseBlock(){
     <div class="bar" style="margin:6px 0 10px"><i style="width:${done/LESSONS.length*100}%"></i></div>
     <div class="mut">${C().done[nx] ? 'Все уроки пройдены — повторяйте любые' : 'Следующий урок'}</div>
     <h2 style="margin:4px 0">${nx+1}. ${L.t}</h2><div>${L.g}</div>
+    ${EPISODES[nx] ? `<div class="story mut" style="margin-top:6px">📺 Серия ${nx+1} · ${(CITIES[L.unit]||{}).em||''} ${(CITIES[L.unit]||{}).name||''}: ${EPISODES[nx].n.slice(0,90)}…</div>` : ''}
     <button class="primary" onclick="openLesson(${nx})">${C().done[nx] ? 'Повторить' : 'Начать урок'} →</button>
     <button class="btn" style="width:100%;margin-top:6px" onclick="openTraining()">🔀 Смешанная тренировка по пройденному</button></div>
-   ${COURSE.map((u,ui) => { const ids = LESSONS.map((x,i)=>i).filter(i => LESSONS[i].unit===ui), dn = ids.filter(i => C().done[i]).length;
+   <h3>Карта путешествия ${HERO}</h3><div class="mut">Каждый город — блок из 5 уроков. Пройди город целиком — получишь открытку.</div>${renderMap()}
+   ${[].map((u,ui) => { const ids = LESSONS.map((x,i)=>i).filter(i => LESSONS[i].unit===ui), dn = ids.filter(i => C().done[i]).length;
      return `<details class="card" ${ids.includes(nx)?'open':''}><summary><b>Блок ${ui+1}. ${u.u}</b> <span class="mut">${dn} / ${ids.length}</span></summary>
       ${ids.map(i => `<div class="lrow ${i===nx?'nx':''}" onclick="openLesson(${i})"><span class="ln">${C().done[i]?'✓':i+1}</span><span><b>${LESSONS[i].t}</b><br><span class="mut">${LESSONS[i].g}</span></span></div>`).join('')}</details>`; }).join('')}`;
 }
@@ -91,12 +93,13 @@ function renderStep(){
   const L = LESSONS[CL.i], st = STEPS[CL.s][0];
   const head = `<div class="row" style="justify-content:space-between;margin-top:8px"><button class="btn" onclick="closeLesson()">← Курс</button><span class="mut">Урок ${CL.i+1} из ${LESSONS.length}</span></div>
    <h2>${L.t}</h2><div class="steps">${STEPS.map((x,j)=>`<span class="${j<CL.s?'d':j===CL.s?'c':''}" title="${x[1]}"></span>`).join('')}</div>
-   <div class="mut" style="margin-bottom:6px">Шаг ${CL.s+1} из ${STEPS.length}: <b>${STEPS[CL.s][1]}</b></div>`;
+   <div class="mut" style="margin-bottom:6px">Шаг ${CL.s+1} из ${STEPS.length}: <b>${STEPS[CL.s][1]}</b></div><div class="mfloat">${mascotHTML(60)}</div>`;
   const next = (lbl) => `<button class="primary" onclick="stepGo(1)">${lbl||'Дальше'} →</button>`;
   const back = CL.s>0 ? `<button class="btn" style="width:100%;margin-top:6px" onclick="stepGo(-1)">← Назад</button>` : '';
   let body = '';
   if(st==='intro'){
-    body = `<div class="card"><b>Цель урока</b><div style="font-size:18px;margin-top:4px">${L.g}</div>
+    setTimeout(() => mascotSay(pick(MASCOT_TXT.start), 'happy'), 300);
+    body = episodeHTML(CL.i) + `<div class="card"><b>Цель урока</b><div style="font-size:18px;margin-top:4px">${L.g}</div>
       ${L.tip?`<div class="tip" style="margin-top:10px">💡 ${L.tip}</div>`:''}
       <div class="mut" style="margin-top:10px">Вы научитесь говорить:</div><ul>${L.k.slice(0,5).map(k=>`<li>${k[2]}</li>`).join('')}</ul></div>` + next('Начать');
   }
@@ -129,13 +132,14 @@ function renderStep(){
         <div id="sv${j}" hidden>${s[1].map(a => { const i = R(a[0]); return `<div class="ans-var" onclick="sayI(${i})">${IS_EN?`<span class="en">${a[0]}</span>`:`<span class="hz" style="font-size:22px">${a[0]}</span><br><span class="py">${a[1]}</span>`} 🔊</div>`; }).join('')}</div></div>`).join('')}` + next();
   }
   else if(st==='done'){
-    const first = !C().done[CL.i];
-    if(first){ C().done[CL.i] = 1; addXP(20); }
+    const first = !C().done[CL.i], unit = LESSONS[CL.i].unit;
+    if(first){ C().done[CL.i] = 1; addXP(20); award('lesson', !CL.miss); if(cityDone(unit)) setTimeout(() => showPostcard(unit), 2200); }
     body = `<div class="card center"><div style="font-size:48px">🎉</div><b>Урок «${L.t}» пройден!</b>
-      <div class="mut">${first?'+20 очков. ':''}Завтра повторите слова в карточках и сделайте смешанную тренировку — так фразы закрепятся.</div>
+      <div class="mut">${first?'+20 очков. ':''}${first&&!CL.miss?'Ни одной ошибки — идеально! ':''}Завтра повторите слова в карточках и сделайте смешанную тренировку — так фразы закрепятся.</div>
+      ${mascotHTML(70, first ? 'Ура! Серия пройдена!' : 'Повторение — мать учения!')}
       ${CL.i+1<LESSONS.length?`<button class="primary" onclick="openLesson(${CL.i+1})">Следующий урок: ${LESSONS[CL.i+1].t} →</button>`:''}
       <button class="btn" style="width:100%;margin-top:6px" onclick="openTraining()">🔀 Смешанная тренировка</button>
-      <button class="btn" style="width:100%;margin-top:6px" onclick="closeLesson()">К списку уроков</button></div>`;
+      <button class="btn" style="width:100%;margin-top:6px" onclick="closeLesson()">К карте путешествия</button></div>` + teaserHTML(CL.i);
   }
   $('#t-home').innerHTML = head + body + (st!=='done' ? back : '');
   if(TK) renderTask();
@@ -155,7 +159,8 @@ function patTry(j, q){
 function dlgView(L){
   const lines = L.d;
   if(CL.role){
-    if(CL.di >= lines.length) return `<div class="card center"><b>👏 Диалог сыгран!</b><div class="row" style="justify-content:center;margin-top:6px"><button class="btn" onclick="CL.role=null;renderStep()">Ещё раз</button></div></div>`;
+    if(CL.di >= lines.length){ if(!CL.roleDone){ CL.roleDone = true; setTimeout(() => award('role'), 50); }
+      return `<div class="card center"><b>👏 Диалог сыгран!</b><div class="row" style="justify-content:center;margin-top:6px"><button class="btn" onclick="CL.role=null;CL.roleDone=false;renderStep()">Ещё раз</button></div></div>`; }
     const l = lines[CL.di], mine = l[0]===CL.role, i = R(l[1]);
     const past = lines.slice(Math.max(0,CL.di-2), CL.di).map(x => `<div class="mut"><b>${x[0]}:</b> ${x[1]}</div>`).join('');
     if(!mine){ setTimeout(() => say(l[1], 0, l[0]), 150);
@@ -183,6 +188,7 @@ function playLessonDlg(){
 function renderTask(){
   const box = $('#ctask'); if(!box) return;
   if(TK.i >= TK.list.length){
+    if(CL && CL.train && !TK.awarded){ TK.awarded = true; award('training'); }
     box.innerHTML = `<div class="card center"><b>Готово: ${TK.ok} из ${TK.list.length}</b><div class="mut">${TK.ok>=TK.list.length*.8?'Отлично!':'Хорошая тренировка — повторение сделает своё дело.'}</div>
       <button class="primary" onclick="${TK.onDone}">Дальше →</button></div>`;
     return;
@@ -217,11 +223,11 @@ function tkReveal(i){
   const k = TK.list[TK.i]; sayI(i);
   $('#tkShow').hidden = true;
   $('#tkr').innerHTML = `<div class="card pvi">${LANG.big(k.it)}</div>`;
-  $('#tkg').innerHTML = `<div class="mut">Получилось сказать?</div><div class="row"><button class="btn okb" onclick="TK.ok++;addXP(1);TK.i++;renderTask()">✓ Да</button><button class="btn badb" onclick="TK.i++;renderTask()">✗ Нет</button></div>`;
+  $('#tkg').innerHTML = `<div class="mut">Получилось сказать?</div><div class="row"><button class="btn okb" onclick="TK.ok++;addXP(1);award('task',true);TK.i++;renderTask()">✓ Да</button><button class="btn badb" onclick="award('task',false);TK.i++;renderTask()">✗ Нет</button></div>`;
 }
 function tkHear(q){
   const k = TK.list[TK.i]; if(k.done) return; k.done = true;
-  const right = k.opts.indexOf(k.it), ok = q===right; if(ok){ TK.ok++; addXP(1); }
+  const right = k.opts.indexOf(k.it), ok = q===right; if(ok){ TK.ok++; addXP(1); } award('task', ok);
   const bs = document.querySelectorAll('#tko button'); bs[right].classList.add('ok'); if(!ok) bs[q].classList.add('bad');
   $('#tkr').innerHTML = `<div class="pvi">${LANG.big(k.it)}</div>` + tkNextBtn();
 }
@@ -229,7 +235,7 @@ function tkPick(q){ const k = TK.list[TK.i]; if(k.done) return; k.picked.push(q)
 function tkUndo(j){ const k = TK.list[TK.i]; if(k.done) return; k.picked.splice(j,1); renderTask(); }
 function tkBuild(){
   const k = TK.list[TK.i]; k.done = true;
-  const ok = LANG.same(LANG.join(k.picked.map(q => k.tk[q])), k.it.t); if(ok){ TK.ok++; addXP(2); }
+  const ok = LANG.same(LANG.join(k.picked.map(q => k.tk[q])), k.it.t); if(ok){ TK.ok++; addXP(2); } award('task', ok);
   say(k.it.t); renderTask();
   $('#tkr').innerHTML = (ok?'<b style="color:var(--ok)">✅ Верно!</b>':'<b style="color:var(--bad)">❌ Правильно так:</b>') + `<div class="pvi">${LANG.big(k.it)}</div>` + tkNextBtn();
 }
@@ -249,7 +255,7 @@ function openTraining(){
 }
 function renderTraining(){
   $('#t-home').innerHTML = `<div class="row" style="justify-content:space-between;margin-top:8px"><button class="btn" onclick="closeLesson()">← Курс</button><span class="mut">${CL.n>1?'по '+CL.n+' урокам':'по первому уроку'}</span></div>
-    <h2>Смешанная тренировка</h2><div class="mut">Каждый раз новые сочетания из всех пройденных уроков. 12 заданий.</div><div id="ctask"></div>
+    <div class="mfloat">${mascotHTML(60)}</div><h2>Смешанная тренировка</h2><div class="mut">Каждый раз новые сочетания из всех пройденных уроков. 12 заданий.</div><div id="ctask"></div>
     <button class="btn" style="width:100%;margin-top:6px" onclick="closeLesson()">Закончить</button>`;
   renderTask();
 }

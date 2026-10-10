@@ -14,6 +14,7 @@ function renderStats(){
     <div><b>${S.xp||0}</b><span class="mut">очков всего</span></div><div><b>${levelOf(S.xp||0).lv}</b><span class="mut">уровень</span></div></div>
    ${[['HSK 1',L1],['HSK 2',L2],['курса',L3]].map(([n,v])=>`<div class="card"><b>Словарь ${n}</b><div class="bar" style="margin:8px 0"><i style="width:${(v[0]/v[1]*100).toFixed(1)}%"></i></div>
     <div class="mut">выучено ${v[0]} из ${v[1]} слов</div></div>`).join('')}
+   ${achBlock()}
    <div class="card"><b>Очки за последние 14 дней</b>${days.length?days.map(d=>{const v=act(S.daily[d]);
      return `<div class="row" style="flex-wrap:nowrap"><span class="mut" style="width:52px">${d.slice(8)}.${d.slice(5,7)}</span><div class="bar" style="flex:1"><i style="width:${v/max*100}%"></i></div><span style="width:40px;text-align:right">${v}</span></div>`;}).join(''):'<div class="mut">Пока пусто</div>'}</div>
    <div class="card"><b>Трудные слова</b>${weak.length?weak.map(w=>`<div class="dict-row" onclick="say('${w[0]}')"><span class="hz">${colorHz(w[0],w[1])}</span><span class="py">${colorPy(w[1])}</span><span>${w[2]}</span><span class="mut">✗${S.srs[w[0]].l}</span></div>`).join(''):'<div class="mut">Пока нет — отлично!</div>'}</div>
@@ -40,6 +41,9 @@ function openSettings(){
    <select onchange="S.settings.voice=this.value;save();pickVoice()"><option value="">авто</option>${vs.map(v=>`<option ${v.name===S.settings.voice?'selected':''} value="${v.name}">${v.name} (${v.lang})</option>`).join('')}</select>
    ${vs.length?'':'<div class="warn" style="margin-top:6px">Китайских голосов не найдено — см. подсказку на вкладке «Старт».</div>'}
    <label class="row" style="margin-top:12px"><input type="checkbox" ${S.settings.autoplay?'checked':''} onchange="S.settings.autoplay=this.checked;save()"> Автоматически озвучивать карточки</label>
+   <label for="style" style="display:block;margin-top:12px">Оформление</label>
+   <select id="style" onchange="S.settings.style=this.value;save();applyTheme()"><option value="anime" ${(S.settings.style||'anime')==='anime'?'selected':''}>Аниме ✨</option><option value="classic" ${S.settings.style==='classic'?'selected':''}>Классика</option></select>
+   <label class="row" style="margin-top:8px"><input type="checkbox" id="sndfx" ${GS().sound?'checked':''} onchange="GS().sound=this.checked;save()"> Звуки и эффекты в играх и уроках</label>
    <div class="mut" style="margin-top:12px">Очки: урок курса +20, новое слово +2, повторение +1, верный ответ в тесте +2, тон +1, собранное предложение +3, сыгранный диалог +5.<br>Версия ${APP.ver} от ${APP.date}. Распознавание речи: ${SR?'есть':'нет в этом браузере'}.</div>
    <button class="primary" onclick="closeOvl()">Готово</button>`;
   $('#ovl').hidden = false;

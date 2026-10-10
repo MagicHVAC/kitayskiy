@@ -84,7 +84,7 @@ function grade(hz, g){
   S.srs[hz] = s;
 }
 function rate(g){
-  grade(cur[0], g); dayRec().rev++; addXP(1);
+  grade(cur[0], g); dayRec().rev++; addXP(1); award('rev');
   Q.shift(); if(g===0) Q.splice(Math.min(3,Q.length), 0, cur);
   renderCard();
 }

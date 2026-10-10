@@ -3,8 +3,8 @@
 let hideRu = false;
 function renderTalk(){
   const sub = S.sub.talk || 'phr';
-  $('#t-talk').innerHTML = subnav('talk', [['phr','Фразы'],['dlg','Диалоги'],['aud','Аудирование']], sub) + '<div id="talkBody"></div>';
-  ({phr:renderPhrases, dlg:renderDialogs, aud:audNext})[sub]();
+  $('#t-talk').innerHTML = subnav('talk', [['phr','Фразы'],['dlg','Диалоги'],['aud','Аудирование'],['slang','Сленг 🔥']], sub) + '<div id="talkBody"></div>';
+  ({phr:renderPhrases, dlg:renderDialogs, aud:audNext, slang:renderSlang})[sub]();
 }
 
 /* ---- фразы ---- */
