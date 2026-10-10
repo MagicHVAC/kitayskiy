@@ -24,6 +24,7 @@
   --t1:#ff6b6b;--t2:#6fcf73;--t3:#64a8ff;--t4:#c58af0;--t5:#9a9a9a;color-scheme:dark;}
 .big.hz,.mid.hz,.tile .hz{font-family:"Noto Serif SC",var(--hz);font-weight:600}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   padding:0 16px calc(76px + env(safe-area-inset-bottom,0px));}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:8px;
@@ -132,7 +133,7 @@ window.onerror = function(m, s, l, c){
 </script>
 <script>
 'use strict';
-const APP = {ver:'1.0.1', date:'10.10.2026'};
+const APP = {ver:'1.0.2', date:'10.10.2026'};
 
 /* ================= ДАННЫЕ ================= */
 // Словарь уровня HSK 1: [иероглифы, пиньинь по слогам через пробел, перевод]
