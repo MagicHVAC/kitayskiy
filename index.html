@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#b3261e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Китайский">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="icon" href="icon-512.png">
 <title>Китайский с нуля</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600&display=swap">
 <style>
@@ -94,6 +101,23 @@ input[type=search],input[type=text],select,textarea{font:inherit;width:100%;padd
 .kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
 .kpi b{display:block;font-size:26px}
 svg.curve{width:120px;height:64px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--line);border-radius:12px;padding:3px;margin:8px 0}
+.seg button{flex:1 1 auto;border:0;background:none;color:var(--fg);border-radius:9px;padding:8px 10px;font-size:14px}
+.seg button.on{background:var(--card);color:var(--acc);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.tile2{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:24px;margin:3px}
+.ans{min-height:58px;border:2px dashed var(--line);border-radius:12px;padding:6px;display:flex;flex-wrap:wrap;align-items:center}
+.ans .tile2{border-color:var(--acc);background:var(--acc2)}
+.line{position:relative;padding-left:44px}
+.line .who{position:absolute;left:12px;top:14px;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.lineB .who{background:var(--t3)}
+.line.now{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc2)}
+.news{border-color:var(--acc)}
+.news ul{margin:6px 0;padding-left:20px}
+.opt{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;text-align:left}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--card))}
+nav button{font-size:11px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -107,8 +131,9 @@ svg.curve{width:120px;height:64px}
 <section id="t-home"></section>
 <section id="t-sounds" hidden></section>
 <section id="t-words" hidden></section>
-<section id="t-phrases" hidden></section>
+<section id="t-talk" hidden></section>
 <section id="t-read" hidden></section>
+<section id="t-rules" hidden></section>
 <section id="t-stats" hidden></section>
 </main>
 
@@ -116,8 +141,9 @@ svg.curve{width:120px;height:64px}
   <button data-t="home" onclick="show('home')"><b>家</b>Старт</button>
   <button data-t="sounds" onclick="show('sounds')"><b>声</b>Звуки</button>
   <button data-t="words" onclick="show('words')"><b>词</b>Слова</button>
-  <button data-t="phrases" onclick="show('phrases')"><b>说</b>Фразы</button>
+  <button data-t="talk" onclick="show('talk')"><b>说</b>Речь</button>
   <button data-t="read" onclick="show('read')"><b>字</b>Чтение</button>
+  <button data-t="rules" onclick="show('rules')"><b>法</b>Правила</button>
 </nav>
 <div id="toast"></div>
 <div id="ovl" hidden onclick="if(event.target===this)closeOvl()"><div class="sheet" id="sheet"></div></div>
@@ -131,594 +157,19 @@ window.onerror = function(m, s, l, c){
   b.textContent += 'Ошибка: ' + m + ' (строка ' + l + ':' + c + ')\n' + navigator.userAgent + '\n';
 };
 </script>
+<script src="js/data_base.js?v=1.1.0"></script>
+<script src="js/data_more.js?v=1.1.0"></script>
+<script src="js/core.js?v=1.1.0"></script>
+<script src="js/tab_home.js?v=1.1.0"></script>
+<script src="js/tab_sounds.js?v=1.1.0"></script>
+<script src="js/tab_words.js?v=1.1.0"></script>
+<script src="js/tab_talk.js?v=1.1.0"></script>
+<script src="js/tab_read.js?v=1.1.0"></script>
+<script src="js/tab_rules.js?v=1.1.0"></script>
+<script src="js/tab_stats.js?v=1.1.0"></script>
+<script src="js/main.js?v=1.1.0"></script>
 <script>
-'use strict';
-const APP = {ver:'1.0.2', date:'10.10.2026'};
-
-/* ================= ДАННЫЕ ================= */
-// Словарь уровня HSK 1: [иероглифы, пиньинь по слогам через пробел, перевод]
-const WORDS = [
-['你','nǐ','ты'],['好','hǎo','хороший, хорошо'],['我','wǒ','я'],['是','shì','быть, являться (есть)'],
-['不','bù','не, нет'],['他','tā','он'],['她','tā','она'],['我们','wǒ men','мы'],
-['谢谢','xiè xie','спасибо'],['不客气','bú kè qi','не за что'],['对不起','duì bu qǐ','извините'],['没关系','méi guān xi','ничего страшного'],
-['再见','zài jiàn','до свидания'],['喂','wèi','алло'],['请','qǐng','пожалуйста; приглашать'],['吗','ma','вопросительная частица'],
-['呢','ne','частица «а ...?»'],['的','de','частица принадлежности («мой» = 我的)'],['了','le','частица завершённого действия'],['很','hěn','очень'],
-['一','yī','один'],['二','èr','два'],['三','sān','три'],['四','sì','четыре'],['五','wǔ','пять'],
-['六','liù','шесть'],['七','qī','семь'],['八','bā','восемь'],['九','jiǔ','девять'],['十','shí','десять'],
-['人','rén','человек'],['爸爸','bà ba','папа'],['妈妈','mā ma','мама'],['儿子','ér zi','сын'],['女儿','nǚ ér','дочь'],
-['朋友','péng you','друг'],['老师','lǎo shī','учитель'],['学生','xué sheng','ученик, студент'],['同学','tóng xué','одноклассник, однокурсник'],
-['医生','yī shēng','врач'],['先生','xiān sheng','господин; муж'],['小姐','xiǎo jiě','девушка (обращение), мисс'],['谁','shéi','кто'],
-['名字','míng zi','имя'],['叫','jiào','звать(ся)'],['认识','rèn shi','знать (кого-то), быть знакомым'],['高兴','gāo xìng','радостный, рад'],
-['爱','ài','любить'],['喜欢','xǐ huan','нравиться, любить'],['想','xiǎng','хотеть; думать'],['会','huì','уметь'],['能','néng','мочь'],
-['有','yǒu','иметь, есть'],['没有','méi yǒu','не иметь; нет'],['在','zài','находиться; в, на'],['家','jiā','дом, семья'],
-['住','zhù','жить, проживать'],['来','lái','приходить, приезжать'],['去','qù','идти, ехать (туда)'],['回','huí','возвращаться'],
-['看','kàn','смотреть'],['看见','kàn jiàn','увидеть'],['听','tīng','слушать'],['说','shuō','говорить'],['读','dú','читать'],
-['写','xiě','писать'],['做','zuò','делать'],['坐','zuò','сидеть; ехать (на транспорте)'],['开','kāi','открывать; водить (машину)'],
-['买','mǎi','покупать'],['吃','chī','есть (кушать)'],['喝','hē','пить'],['睡觉','shuì jiào','спать'],['工作','gōng zuò','работа; работать'],
-['学习','xué xí','учиться'],['打电话','dǎ diàn huà','звонить по телефону'],['下雨','xià yǔ','идёт дождь'],
-['汉语','Hàn yǔ','китайский язык'],['字','zì','иероглиф'],['书','shū','книга'],['本','běn','счётное слово для книг'],
-['个','gè','универсальное счётное слово'],['些','xiē','несколько, некоторые'],['块','kuài','юань (разг.); кусок'],['钱','qián','деньги'],
-['多少','duō shao','сколько'],['几','jǐ','сколько (до 10); несколько'],['多','duō','много'],['少','shǎo','мало'],
-['大','dà','большой'],['小','xiǎo','маленький'],['太','tài','слишком'],['冷','lěng','холодный'],['热','rè','жаркий, горячий'],
-['漂亮','piào liang','красивый'],['天气','tiān qì','погода'],['中国','Zhōng guó','Китай'],['北京','Běi jīng','Пекин'],
-['学校','xué xiào','школа'],['商店','shāng diàn','магазин'],['医院','yī yuàn','больница'],['饭店','fàn diàn','ресторан; гостиница'],
-['飞机','fēi jī','самолёт'],['出租车','chū zū chē','такси'],['电脑','diàn nǎo','компьютер'],['电视','diàn shì','телевизор'],
-['电影','diàn yǐng','фильм, кино'],['东西','dōng xi','вещь'],['衣服','yī fu','одежда'],['杯子','bēi zi','стакан, чашка'],
-['桌子','zhuō zi','стол'],['椅子','yǐ zi','стул'],['狗','gǒu','собака'],['猫','māo','кошка'],
-['茶','chá','чай'],['水','shuǐ','вода'],['米饭','mǐ fàn','варёный рис'],['菜','cài','блюдо; овощи'],
-['苹果','píng guǒ','яблоко'],['水果','shuǐ guǒ','фрукты'],['这','zhè','этот, это'],['那','nà','тот, то'],
-['哪','nǎ','какой, который'],['哪儿','nǎ r','где, куда'],['什么','shén me','что, какой'],['怎么','zěn me','как'],
-['怎么样','zěn me yàng','как? каково?'],['和','hé','и'],['都','dōu','все, всё'],['上','shàng','на, над; верх'],
-['下','xià','под, вниз; следующий'],['里','lǐ','внутри'],['前面','qián mian','впереди'],['后面','hòu mian','сзади, позади'],
-['今天','jīn tiān','сегодня'],['明天','míng tiān','завтра'],['昨天','zuó tiān','вчера'],['现在','xiàn zài','сейчас'],
-['上午','shàng wǔ','утро (до полудня)'],['中午','zhōng wǔ','полдень'],['下午','xià wǔ','после полудня'],['时候','shí hou','время, момент'],
-['点','diǎn','час (о времени); немного'],['分钟','fēn zhōng','минута'],['年','nián','год'],['月','yuè','месяц; луна'],
-['号','hào','число (дата); номер'],['星期','xīng qī','неделя'],['岁','suì','лет (о возрасте)'],['爱人','ài ren','супруг(а)']
-];
-
-const TONE_SETS = [
- [['妈','mā'],['麻','má'],['马','mǎ'],['骂','mà']],
- [['八','bā'],['拔','bá'],['把','bǎ'],['爸','bà']],
- [['汤','tāng'],['糖','táng'],['躺','tǎng'],['烫','tàng']],
- [['诗','shī'],['十','shí'],['使','shǐ'],['是','shì']],
- [['衣','yī'],['姨','yí'],['椅','yǐ'],['意','yì']],
- [['屋','wū'],['无','wú'],['五','wǔ'],['雾','wù']],
- [['七','qī'],['骑','qí'],['起','qǐ'],['气','qì']],
- [['飞','fēi'],['肥','féi'],['匪','fěi'],['费','fèi']],
- [['踢','tī'],['题','tí'],['体','tǐ'],['替','tì']]
-];
-const TONES = [
- {n:1,name:'1-й тон — высокий ровный',hint:'Тяните звук высоко и ровно, как у врача: «а-а-а».',pts:[[0,5],[1,5]],ex:['妈','mā','мама']},
- {n:2,name:'2-й тон — восходящий',hint:'Голос поднимается снизу вверх, как в удивлённом «Да?!»',pts:[[0,3],[1,5]],ex:['麻','má','конопля']},
- {n:3,name:'3-й тон — низкий «ныряющий»',hint:'Опуститесь голосом вниз и чуть поднимитесь: «Ну-у?..» с сомнением. В быстрой речи часто звучит только низкая часть.',pts:[[0,2],[.45,1],[1,4]],ex:['马','mǎ','лошадь']},
- {n:4,name:'4-й тон — резкий падающий',hint:'Резко сверху вниз, как команда «Стой!» или уверенное «Да!»',pts:[[0,5],[1,1]],ex:['骂','mà','ругать']},
- {n:5,name:'Лёгкий (нулевой) тон',hint:'Коротко и безударно, без знака над гласной: 吗 ma, 的 de, 爸爸 bàba.',pts:null,ex:['吗','ma','вопрос. частица']}
-];
-
-const SOUNDS = [
- ['b / p','«п» без выдоха / «п» с сильным выдохом (поднесите ладонь ко рту: на p чувствуется поток воздуха). То же для d/t, g/k.',[['爸','bà'],['怕','pà']]],
- ['d / t','«т» без выдоха / «т» с выдохом',[['大','dà'],['太','tài']]],
- ['g / k','«к» без выдоха / «к» с выдохом',[['个','gè'],['看','kàn']]],
- ['h','как русское «х», но мягче и глубже',[['好','hǎo'],['喝','hē']]],
- ['zh','твёрдое «чж», кончик языка загнут к нёбу',[['中','zhōng'],['这','zhè']]],
- ['ch','твёрдое «ч» с выдохом, язык загнут',[['吃','chī'],['茶','chá']]],
- ['sh','как русское «ш», язык загнут',[['是','shì'],['书','shū']]],
- ['r','что-то среднее между «ж» и английским r',[['人','rén'],['热','rè']]],
- ['z / c / s','«дз» / «ц» с выдохом / «с»',[['在','zài'],['菜','cài'],['四','sì']]],
- ['j / q / x','мягкие: «дзь» / «ць» с выдохом / «сь». Кончик языка у нижних зубов',[['家','jiā'],['七','qī'],['小','xiǎo']]],
- ['ü','губы как для «у», а язык как для «и» (немецкое ü). После j, q, x пишется просто u',[['女','nǚ'],['去','qù']]],
- ['e','не «е»! Звук между «э» и «ы», горлом',[['喝','hē'],['饿','è']]],
- ['-i после zh ch sh r z c s','это не «и», а продолжение согласного: shì ≈ «шъ», sì ≈ «сы»',[['是','shì'],['四','sì']]],
- ['-n / -ng','-n: язык у зубов (как «н»); -ng: носовое «нг», рот открыт',[['山','shān'],['上','shàng']]],
- ['er','«эр» с загнутым языком',[['二','èr'],['儿','ér']]],
- ['ian / yan','читается «ень», а не «ян»: tiān ≈ «тьень»',[['天','tiān'],['钱','qián']]]
-];
-const PAIRS = [
- [['四','sì'],['十','shí']],[['七','qī'],['吃','chī']],[['西','xī'],['诗','shī']],[['山','shān'],['上','shàng']],
- [['金','jīn'],['京','jīng']],[['在','zài'],['菜','cài']],[['爸','bà'],['怕','pà']],[['女','nǚ'],['你','nǐ']],
- [['大','dà'],['太','tài']],[['家','jiā'],['茶','chá']]
-];
-
-const PHRASES = [
- ['Знакомство',[
-  ['你好！','Nǐ hǎo!','Здравствуй! (звучит «ní hǎo»: 3+3 → 2+3)'],
-  ['您好！','Nín hǎo!','Здравствуйте! (вежливо)'],
-  ['你叫什么名字？','Nǐ jiào shénme míngzi?','Как тебя зовут?'],
-  ['我叫王明。','Wǒ jiào Wáng Míng.','Меня зовут Ван Мин.'],
-  ['认识你很高兴。','Rènshi nǐ hěn gāoxìng.','Рад познакомиться.'],
-  ['你是哪国人？','Nǐ shì nǎ guó rén?','Из какой ты страны?'],
-  ['我是俄罗斯人。','Wǒ shì Éluósī rén.','Я из России.'],
-  ['你好吗？','Nǐ hǎo ma?','Как дела?'],
-  ['我很好，谢谢。你呢？','Wǒ hěn hǎo, xièxie. Nǐ ne?','Хорошо, спасибо. А ты?']]],
- ['Вежливость и «я не понимаю»',[
-  ['谢谢！','Xièxie!','Спасибо!'],
-  ['不客气。','Bú kèqi.','Не за что.'],
-  ['对不起。','Duìbuqǐ.','Извините.'],
-  ['没关系。','Méi guānxi.','Ничего страшного.'],
-  ['再见！','Zàijiàn!','До свидания!'],
-  ['我听不懂。','Wǒ tīng bu dǒng.','Я не понимаю (на слух).'],
-  ['请再说一遍。','Qǐng zài shuō yí biàn.','Повторите, пожалуйста.'],
-  ['请说慢一点。','Qǐng shuō màn yìdiǎn.','Говорите помедленнее, пожалуйста.'],
-  ['我会说一点儿汉语。','Wǒ huì shuō yìdiǎnr Hànyǔ.','Я немного говорю по-китайски.'],
-  ['我不知道。','Wǒ bù zhīdào.','Я не знаю.']]],
- ['Магазин и еда',[
-  ['这个多少钱？','Zhège duōshao qián?','Сколько это стоит?'],
-  ['太贵了！','Tài guì le!','Слишком дорого!'],
-  ['我要这个。','Wǒ yào zhège.','Я возьму это.'],
-  ['我想喝茶。','Wǒ xiǎng hē chá.','Я хочу выпить чаю.'],
-  ['我喜欢中国菜。','Wǒ xǐhuan Zhōngguó cài.','Мне нравится китайская кухня.'],
-  ['好吃！','Hǎochī!','Вкусно!'],
-  ['买单！','Mǎidān!','Счёт, пожалуйста!']]],
- ['Время и места',[
-  ['现在几点？','Xiànzài jǐ diǎn?','Который час?'],
-  ['今天星期几？','Jīntiān xīngqī jǐ?','Какой сегодня день недели?'],
-  ['你住在哪儿？','Nǐ zhù zài nǎr?','Где ты живёшь?'],
-  ['你去哪儿？','Nǐ qù nǎr?','Куда ты идёшь?'],
-  ['请问，洗手间在哪儿？','Qǐngwèn, xǐshǒujiān zài nǎr?','Скажите, пожалуйста, где туалет?']]]
-];
-
-const PICTO = [
- ['人','rén','человек','идущий человек'],['口','kǒu','рот','открытый рот'],['日','rì','солнце, день','солнце с точкой'],
- ['月','yuè','луна, месяц','полумесяц'],['山','shān','гора','три вершины'],['水','shuǐ','вода','поток с брызгами'],
- ['火','huǒ','огонь','языки пламени'],['木','mù','дерево','ствол, ветви, корни'],['大','dà','большой','человек раскинул руки'],
- ['小','xiǎo','маленький','мелкие крупинки'],['上','shàng','верх, на','черта над линией'],['下','xià','низ, под','черта под линией'],
- ['中','zhōng','середина','стрела в центре мишени'],['女','nǚ','женщина','фигура в поклоне'],['子','zǐ','ребёнок','малыш в пелёнках'],
- ['一','yī','один','одна черта'],['二','èr','два','две черты'],['三','sān','три','три черты']
-];
-const RADICALS = [
- ['亻','человек (от 人)','你 他 们 住 做'],['女','женщина','她 妈 姐 好'],['口','рот, речь','吃 喝 叫 吗 呢 哪'],
- ['氵','вода (от 水)','没 汉 漂'],['讠','слово, речь (от 言)','说 请 认 识 谁 语 话 读 谢'],['木','дерево','杯 椅 校 果'],
- ['日','солнце, день','明 昨 时 是 星'],['艹','трава','菜 茶 苹'],['宀','крыша','字 家 客'],['心 / 忄','сердце, чувство','想 怎 您'],
- ['扌','рука (от 手)','打'],['饣','еда','饭'],['钅','металл','钱'],['辶','движение','这']
-];
-const SENTENCES = [
- ['我是学生。','Wǒ shì xuésheng.','Я студент.'],
- ['我爱妈妈。','Wǒ ài māma.','Я люблю маму.'],
- ['你喝茶吗？','Nǐ hē chá ma?','Ты пьёшь чай? / Будешь чай?'],
- ['今天很冷。','Jīntiān hěn lěng.','Сегодня холодно.'],
- ['这是什么？','Zhè shì shénme?','Что это?'],
- ['他是我的朋友。','Tā shì wǒ de péngyou.','Он мой друг.'],
- ['我想去北京。','Wǒ xiǎng qù Běijīng.','Я хочу поехать в Пекин.'],
- ['我有一个儿子。','Wǒ yǒu yí ge érzi.','У меня есть сын.'],
- ['明天下雨吗？','Míngtiān xiàyǔ ma?','Завтра будет дождь?'],
- ['我不认识他。','Wǒ bú rènshi tā.','Я его не знаю.'],
- ['你的猫很漂亮。','Nǐ de māo hěn piàoliang.','Твоя кошка очень красивая.'],
- ['我在学习汉语。','Wǒ zài xuéxí Hànyǔ.','Я учу китайский язык.'],
- ['桌子上有一本书。','Zhuōzi shang yǒu yì běn shū.','На столе лежит книга.'],
- ['妈妈在商店买水果。','Māma zài shāngdiàn mǎi shuǐguǒ.','Мама покупает фрукты в магазине.'],
- ['我们明天去看电影。','Wǒmen míngtiān qù kàn diànyǐng.','Завтра мы идём в кино.']
-];
-
-/* ================= СОСТОЯНИЕ ================= */
-const LS = 'zh_learn_v1';
-const DAY = 864e5;
-let S = {srs:{}, daily:{}, tone:{ok:0,all:0}, pair:{ok:0,all:0},
-  settings:{rate:0.8, newPerDay:10, mode:'read', autoplay:true, voice:''}, tab:'home'};
-function load(){ try{ const t=localStorage.getItem(LS); if(t){ const o=JSON.parse(t); S=Object.assign(S,o); S.settings=Object.assign({rate:0.8,newPerDay:10,mode:'read',autoplay:true,voice:''},o.settings||{}); } }catch(e){} }
-function save(){ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} }
-function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function dayRec(){ const k=today(); return S.daily[k] || (S.daily[k]={nw:0,rev:0,q:0,qok:0}); }
-
-/* ================= УТИЛИТЫ ================= */
-const $ = s => document.querySelector(s);
-const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
-const pick = a => a[Math.random()*a.length|0];
-let toastT;
-function toast(m, ms){ const t=$('#toast'); t.innerHTML=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), ms||2200); }
-function toneOf(syl){
-  if(/[āēīōūǖĀĒĪŌŪ]/.test(syl)) return 1; if(/[áéíóúǘÁÉÍÓÚ]/.test(syl)) return 2;
-  if(/[ǎěǐǒǔǚǍĚǏǑǓ]/.test(syl)) return 3; if(/[àèìòùǜÀÈÌÒÙ]/.test(syl)) return 4; return 5;
-}
-function pyJoin(py){ return py.split(' ').map((x,i)=> i>0 && /^[aoeāáǎàōóǒòēéěè]/i.test(x) ? "'"+x : x).join(''); }
-function colorHz(hz, py){
-  const ch=[...hz], sy=py.split(' ');
-  if(ch.length!==sy.length) return hz;
-  return ch.map((c,i)=>'<span class="t'+toneOf(sy[i])+'">'+c+'</span>').join('');
-}
-function colorPy(py){ return py.split(' ').map((s,i)=>'<span class="t'+toneOf(s)+'">'+(i>0&&/^[aoeāáǎàōóǒòēéěè]/i.test(s)?"'":'')+s+'</span>').join(''); }
-
-/* ================= ОЗВУЧКА ================= */
-let zhVoice = null, voicesReady = false;
-function pickVoice(){
-  if(!('speechSynthesis' in window)) return;
-  const vs = speechSynthesis.getVoices(); if(vs.length) voicesReady = true;
-  zhVoice = vs.find(v=>v.name===S.settings.voice) || vs.find(v=>/zh[-_]CN/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang) || /^cmn/i.test(v.lang)) || null;
-}
-if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if(S.tab==='home') renderHome(); }; }
-function say(text, rate){
-  if(!('speechSynthesis' in window)){ toast('Этот браузер не умеет озвучивать текст'); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN'; if(zhVoice) u.voice = zhVoice;
-  u.rate = rate || S.settings.rate;
-  speechSynthesis.speak(u);
-}
-function slow(text){ say(text, 0.5); }
-
-/* ================= РАСПОЗНАВАНИЕ РЕЧИ ================= */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const EMBED = (() => { try { return window.self !== window.top; } catch(e){ return true; } })();
-function onlyHz(s){ return (s.match(/[㐀-鿿]/g)||[]).join(''); }
-function lcs(a,b){ const A=[...a],B=[...b]; const d=Array(B.length+1).fill(0);
-  for(let i=1;i<=A.length;i++){ let prev=0; for(let j=1;j<=B.length;j++){ const t=d[j]; d[j]=A[i-1]===B[j-1]?prev+1:Math.max(d[j],d[j-1]); prev=t; } } return d[B.length]; }
-function listen(target, outId){
-  const out = document.getElementById(outId);
-  if(EMBED){ out.innerHTML = '🎤 В веб-версии по ссылке микрофон закрыт. Тренируйтесь так: 🔊 послушайте → повторите вслух 3 раза → снова 🔊 и сравните.'; return; }
-  if(!SR){ out.innerHTML = '🎤 Распознавание речи недоступно: нужен Chrome/Edge, интернет и открытие через localhost или https. Пока тренируйтесь так: послушайте → повторите вслух → сравните.'; return; }
-  const r = new SR(); r.lang='zh-CN'; r.interimResults=false; r.maxAlternatives=5;
-  out.textContent = '🎤 Говорите…';
-  r.onresult = e => {
-    const tgt = onlyHz(target); let best=-1, heard='';
-    for(const alt of e.results[0]){ const sc = lcs(tgt, onlyHz(alt.transcript)) / Math.max(1,tgt.length); if(sc>best){best=sc;heard=alt.transcript;} }
-    const pct = Math.round(best*100);
-    out.innerHTML = 'Услышано: <span class="hz">'+heard+'</span> — '+(pct>=90?'<b style="color:var(--ok)">отлично! '+pct+'%</b>':pct>=50?'<b style="color:#ef6c00">почти: '+pct+'%</b>':'<b style="color:var(--bad)">ещё раз: '+pct+'%</b>');
-  };
-  r.onerror = e => { out.textContent = 'Микрофон: ' + (e.error==='not-allowed'?'нет доступа (разрешите микрофон)':e.error==='no-speech'?'ничего не услышал':e.error); };
-  try{ r.start(); }catch(e){ out.textContent='Не удалось включить микрофон'; }
-}
-
-/* ================= ПОРЯДОК ЧЕРТ (нужен интернет) ================= */
-function loadHW(){
-  if(window.HanziWriter) return Promise.resolve();
-  return new Promise((res,rej)=>{ const s=document.createElement('script');
-    s.src='https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
-}
-function strokes(hz, elId, quiz){
-  const el = document.getElementById(elId); el.textContent='Загрузка…';
-  loadHW().then(()=>{
-    el.innerHTML='';
-    const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#333';
-    [...hz].forEach(ch=>{
-      const d=document.createElement('div'); d.className='hw'; el.appendChild(d);
-      const w = HanziWriter.create(d, ch, {width:120,height:120,padding:6,strokeColor:fg,radicalColor:'#b3261e',
-        outlineColor:'rgba(128,128,128,.35)',delayBetweenStrokes:180,showOutline:true,showCharacter:!quiz,
-        onLoadCharDataError:()=>{ el.textContent = EMBED ? 'Порядок черт работает только в версии на компьютере (здесь загрузка закрыта).' : 'Не удалось загрузить черты — нужен интернет.'; }});
-      if(quiz) w.quiz({onComplete:()=>toast('✅ Иероглиф '+ch+' написан!')}); else w.loopCharacterAnimation();
-    });
-    if(quiz) el.insertAdjacentHTML('beforeend','<div class="mut">Рисуйте пальцем черту за чертой. Ошибётесь 3 раза — будет подсказка.</div>');
-  }).catch(()=>{ el.textContent='Для порядка черт нужен интернет (библиотека загружается из сети).'; });
-}
-
-/* ================= НАВИГАЦИЯ ================= */
-function show(tab){
-  S.tab = tab; save();
-  document.querySelectorAll('main section').forEach(s => s.hidden = s.id !== 't-'+tab);
-  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t===tab));
-  ({home:renderHome, sounds:renderSounds, words:wordsEnter, phrases:renderPhrases, read:renderRead, stats:renderStats})[tab]();
-  window.scrollTo(0,0);
-}
-
-/* ================= СТАРТ ================= */
-function voiceWarn(){
-  if(!('speechSynthesis' in window)) return '<div class="warn">⚠ Браузер не поддерживает озвучку. Откройте в Chrome, Edge или Safari.</div>';
-  if(voicesReady && !zhVoice) return '<div class="warn">⚠ Не найден китайский голос — без него не будет звука.<br>'+
-    '<b>Windows:</b> Параметры → Время и язык → Язык → Добавить «Китайский (упрощённое письмо, Китай)», отметить «Преобразование текста в речь».<br>'+
-    '<b>Android:</b> Настройки → Спец. возможности → Синтез речи → Google → Установить голосовые данные → «Китайский (Китай)».<br>'+
-    '<b>iPhone:</b> Настройки → Универсальный доступ → Устный контент → Голоса → Китайский.<br>После установки перезапустите браузер.</div>';
-  return '';
-}
-function counts(){
-  const now=Date.now(); let learn=0, known=0, due=0;
-  for(const w of WORDS){ const s=S.srs[w[0]]; if(!s) continue; if(s.r>=1 && s.i>=3) known++; else learn++; if(s.d<=now) due++; }
-  return {learn, known, due, fresh: WORDS.length-learn-known};
-}
-function streak(){ let n=0; const d=new Date(); for(;;){ const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const r=S.daily[k]; if(r && (r.nw||r.rev||r.q)) { n++; d.setDate(d.getDate()-1); } else { if(n===0 && k===today()){ d.setDate(d.getDate()-1); continue; } break; } if(n>3650) break; } return n; }
-function renderHome(){
-  const c=counts(), r=dayRec(), wd=pick(WORDS);
-  const newLeft=Math.max(0,S.settings.newPerDay-r.nw);
-  $('#t-home').innerHTML = voiceWarn() + `
-  <div class="card"><h2>你好！Добро пожаловать</h2>
-   <div class="mut">Учим с нуля: звуки и тоны → слова → фразы → чтение. 15–20 минут в день лучше, чем 2 часа раз в неделю.</div>
-   <div class="kpi" style="margin-top:10px">
-    <div><b>${c.due}</b><span class="mut">к повторению</span></div>
-    <div><b>${newLeft}</b><span class="mut">новых слов сегодня</span></div>
-    <div><b>${c.known}</b><span class="mut">слов выучено из ${WORDS.length}</span></div>
-    <div><b>${streak()}</b><span class="mut">дней подряд</span></div>
-   </div></div>
-  <div class="card"><h3>План на сегодня</h3>
-   <div class="row" style="justify-content:space-between"><span>1. Тоны — 5 минут тренажёра</span><button class="btn" onclick="show('sounds')">Звуки →</button></div>
-   <div class="row" style="justify-content:space-between"><span>2. Карточки: повторение + новые слова</span><button class="btn" onclick="show('words')">Слова →</button></div>
-   <div class="row" style="justify-content:space-between"><span>3. 3–5 фраз вслух за диктором</span><button class="btn" onclick="show('phrases')">Фразы →</button></div>
-   <div class="row" style="justify-content:space-between"><span>4. Прочитать 2–3 предложения</span><button class="btn" onclick="show('read')">Чтение →</button></div>
-  </div>
-  <div class="card center"><div class="mut">Случайное слово</div>
-   <div class="hz big" style="cursor:pointer" onclick="say('${wd[0]}')">${colorHz(wd[0],wd[1])}</div>
-   <div class="py">${colorPy(wd[1])}</div><div>${wd[2]}</div>
-   <button class="btn" onclick="say('${wd[0]}')">🔊 Послушать</button></div>
-  <div class="card mut">Цвет = тон: <span class="t1">1-й</span> · <span class="t2">2-й</span> · <span class="t3">3-й</span> · <span class="t4">4-й</span> · <span class="t5">лёгкий</span>. Нажмите на любой иероглиф — он прозвучит.</div>`;
-}
-
-/* ================= ЗВУКИ И ТОНЫ ================= */
-function curveSVG(pts){
-  if(!pts) return '<svg class="curve" viewBox="0 0 120 64"><circle cx="60" cy="44" r="5" fill="var(--t5)"/></svg>';
-  const P = pts.map(p => (10+p[0]*100).toFixed(1)+','+(58-(p[1]-1)*13).toFixed(1));
-  return '<svg class="curve" viewBox="0 0 120 64"><g stroke="var(--line)">'+[1,2,3,4,5].map(l=>'<line x1="6" x2="114" y1="'+(58-(l-1)*13)+'" y2="'+(58-(l-1)*13)+'"/>').join('')+
-    '</g><polyline points="'+P.join(' ')+'" fill="none" stroke="var(--acc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-}
-let TQ = null, PQ = null;
-function renderSounds(){
-  $('#t-sounds').innerHTML = `
-  <h2>Тоны — главное в китайском</h2>
-  <div class="mut">Один слог с разным тоном — разные слова: mā «мама», mǎ «лошадь», mà «ругать». Нажимайте и повторяйте вслух.</div>
-  ${TONES.map(t=>`<div class="card row" style="flex-wrap:nowrap;gap:12px">${curveSVG(t.pts)}
-    <div style="flex:1"><b class="t${t.n}">${t.name}</b><div class="mut">${t.hint}</div>
-    <button class="btn" onclick="say('${t.ex[0]}')"><span class="hz">${t.ex[0]}</span> ${t.ex[1]} — ${t.ex[2]} 🔊</button></div></div>`).join('')}
-  <div class="card"><b>Послушать четвёрки</b><div class="row" style="margin-top:6px">
-   ${TONE_SETS.map((s,i)=>`<button class="btn" onclick="say('${s.map(x=>x[0]).join('，')}')">${s[0][1].replace(/[āēīōū]/,m=>({'ā':'a','ē':'e','ī':'i','ō':'o','ū':'u'})[m])}: <span class="hz">${s.map(x=>x[0]).join('')}</span></button>`).join('')}
-  </div></div>
-  <h3>🎯 Тренажёр: какой тон?</h3><div class="card" id="tq"></div>
-  <h3>Правила изменения тонов</h3>
-  <div class="card"><b>3 + 3 → 2 + 3.</b> Два третьих тона подряд: первый звучит как второй. 你好 nǐ hǎo → <i>ní hǎo</i>.
-   <button class="btn" onclick="say('你好')">🔊 你好</button></div>
-  <div class="card"><b>不 bù → bú перед 4-м тоном.</b> 不是 <i>bú shì</i>, 不客气 <i>bú kèqi</i>.
-   <button class="btn" onclick="say('不是')">🔊 不是</button></div>
-  <div class="card"><b>一 yī:</b> перед 4-м тоном → <i>yí</i> (一个 yí ge), перед 1-м, 2-м, 3-м → <i>yì</i> (一点 yìdiǎn). В счёте и в конце слова — <i>yī</i>.
-   <button class="btn" onclick="say('一个')">🔊 一个</button><button class="btn" onclick="say('一点')">🔊 一点</button></div>
-  <h2 style="margin-top:22px">Звуки пиньиня</h2>
-  <div class="mut">Пиньинь — латинская запись китайского. Многие буквы читаются не так, как в английском. Вот трудные:</div>
-  <div class="card tw"><table>${SOUNDS.map(s=>`<tr><td><b>${s[0]}</b></td><td>${s[1]}<div class="row" style="margin-top:4px">${s[2].map(e=>`<button class="btn" onclick="say('${e[0]}')"><span class="hz">${e[0]}</span> ${e[1]} 🔊</button>`).join('')}</div></td></tr>`).join('')}</table></div>
-  <h3>👂 Различи на слух</h3><div class="card" id="pq"></div>`;
-  tqNext(); pqNext();
-}
-function tqNext(){
-  const set = pick(TONE_SETS), k = Math.random()*4|0;
-  TQ = {set, k, done:false};
-  $('#tq').innerHTML = `<div class="center"><button class="huge" onclick="say(TQ.set[TQ.k][0])">🔊</button>
-   <div class="mut" style="margin-top:6px">Послушайте и выберите тон. Точность: ${S.tone.all?Math.round(S.tone.ok/S.tone.all*100):0}% (${S.tone.ok}/${S.tone.all})</div></div>
-   <div class="opts" id="tqo">${[1,2,3,4].map(n=>`<button onclick="tqAns(${n})"><span class="t${n}">${n}-й</span> ${curveMini(n)}</button>`).join('')}</div><div class="res" id="tqr"></div>`;
-  setTimeout(()=>say(set[k][0]),200);
-}
-function curveMini(n){ return ['','‾','／','∨','＼'][n]; }
-function tqAns(n){
-  if(TQ.done) return; TQ.done=true;
-  const right = TQ.k+1, ok = n===right; S.tone.all++; if(ok) S.tone.ok++; save();
-  const bs = document.querySelectorAll('#tqo button'); bs[right-1].classList.add('ok'); if(!ok) bs[n-1].classList.add('bad');
-  const w = TQ.set[TQ.k];
-  $('#tqr').innerHTML = (ok?'✅ Верно! ':'❌ Это был '+right+'-й тон. ') + `<span class="hz">${w[0]}</span> <b class="t${right}">${w[1]}</b>
-   <div class="row" style="margin-top:6px"><button class="btn" onclick="say('${TQ.set.map(x=>x[0]).join('，')}')">🔊 Сравнить все 4</button>
-   <button class="btn" onclick="tqNext()" style="font-weight:600">Дальше →</button></div>`;
-}
-function pqNext(){
-  const p = pick(PAIRS), k = Math.random()*2|0;
-  PQ = {p, k, done:false};
-  $('#pq').innerHTML = `<div class="center"><button class="huge" onclick="say(PQ.p[PQ.k][0])">🔊</button>
-   <div class="mut" style="margin-top:6px">Что прозвучало? Точность: ${S.pair.all?Math.round(S.pair.ok/S.pair.all*100):0}%</div></div>
-   <div class="opts" id="pqo">${p.map((x,i)=>`<button onclick="pqAns(${i})"><span class="hz">${x[0]}</span> ${colorPy(x[1])}</button>`).join('')}</div><div class="res" id="pqr"></div>`;
-  setTimeout(()=>say(p[k][0]),200);
-}
-function pqAns(i){
-  if(PQ.done) return; PQ.done=true; const ok=i===PQ.k; S.pair.all++; if(ok) S.pair.ok++; save();
-  const bs=document.querySelectorAll('#pqo button'); bs[PQ.k].classList.add('ok'); if(!ok) bs[i].classList.add('bad');
-  $('#pqr').innerHTML = (ok?'✅ Верно!':'❌ Прозвучало '+PQ.p[PQ.k][1]) + ` <button class="btn" onclick="say('${PQ.p[0][0]}，${PQ.p[1][0]}')">🔊 Оба</button><button class="btn" onclick="pqNext()" style="font-weight:600">Дальше →</button>`;
-}
-
-/* ================= СЛОВА: КАРТОЧКИ С ИНТЕРВАЛЬНЫМ ПОВТОРЕНИЕМ ================= */
-let Q = [], cur = null, QZ = null;
-function buildQueue(){
-  const now=Date.now();
-  const due = shuffle(WORDS.filter(w => S.srs[w[0]] && S.srs[w[0]].d <= now));
-  const newLeft = Math.max(0, S.settings.newPerDay - dayRec().nw);
-  const fresh = WORDS.filter(w => !S.srs[w[0]]).slice(0, newLeft);
-  Q = due.concat(fresh);
-}
-function moreNew(){ const extra = WORDS.filter(w => !S.srs[w[0]] && !Q.includes(w)).slice(0,5); if(!extra.length){toast('Все слова уже в изучении 🎉');return;} Q = Q.concat(extra); renderCard(); }
-function wordsEnter(){
-  const m = S.settings.mode;
-  $('#t-words').innerHTML = `
-   <div class="row"><b style="flex:1">Режим:</b>
-    <button class="btn ${m==='read'?'badge':''}" onclick="setMode('read')">字 → смысл</button>
-    <button class="btn ${m==='listen'?'badge':''}" onclick="setMode('listen')">🔊 → смысл</button>
-    <button class="btn ${m==='recall'?'badge':''}" onclick="setMode('recall')">смысл → 字</button></div>
-   <div class="mut" id="winfo"></div>
-   <div class="card" id="card"></div>
-   <div class="row"><button class="btn" onclick="startQuiz()" style="flex:1">🧩 Тест из 10 вопросов</button></div>
-   <details class="card"><summary><b>📖 Весь словарь (${WORDS.length})</b></summary>
-    <input type="search" placeholder="Поиск: иероглиф, пиньинь или перевод" oninput="renderDict(this.value)" style="margin:8px 0">
-    <div class="mut">● серый — новое, ● оранжевый — изучается, ● зелёный — выучено</div><div id="dict"></div></details>`;
-  if(QZ) renderQuiz(); else { if(!Q.length) buildQueue(); renderCard(); }
-  renderDict('');
-}
-function setMode(m){ S.settings.mode=m; save(); wordsEnter(); }
-function winfo(){ const c=counts(); const el=$('#winfo'); if(el) el.textContent = 'В очереди: '+Q.length+' · к повторению: '+c.due+' · новых сегодня: '+dayRec().nw+'/'+S.settings.newPerDay+' · выучено: '+c.known; }
-function wordBack(w, id){
-  return `<div class="hz big" onclick="say('${w[0]}')" style="cursor:pointer">${colorHz(w[0],w[1])}</div>
-   <div class="center py">${colorPy(w[1])}</div><div class="center" style="font-size:20px;margin-top:4px">${w[2]}</div>
-   <div class="row" style="justify-content:center;margin-top:8px">
-    <button class="btn" onclick="say('${w[0]}')">🔊</button><button class="btn" onclick="slow('${w[0]}')">🐢 медленно</button>
-    <button class="btn" onclick="strokes('${w[0]}','${id}w')">✍ черты</button><button class="btn" onclick="strokes('${w[0]}','${id}w',true)">✏ написать</button>
-    <button class="btn" onclick="listen('${w[0]}','${id}m')">🎤 скажи</button></div>
-   <div id="${id}w" class="center"></div><div id="${id}m" class="res center"></div>`;
-}
-function renderCard(){
-  winfo();
-  const box = $('#card'); if(!box) return;
-  if(!Q.length){
-    box.innerHTML = `<div class="center"><div style="font-size:48px">🎉</div><b>На сегодня всё!</b>
-     <div class="mut">Возвращайтесь завтра — программа сама напомнит, что пора повторить.</div>
-     <button class="primary" onclick="moreNew()">Ещё 5 новых слов</button></div>`; return;
-  }
-  cur = Q[0];
-  const isNew = !S.srs[cur[0]], m = S.settings.mode;
-  if(isNew){
-    box.innerHTML = `<span class="badge">новое слово</span>${wordBack(cur,'c')}
-     <div class="mut center" style="margin-top:6px">Послушайте 2–3 раза и повторите вслух. Через пару карточек оно вернётся для проверки.</div>
-     <button class="primary" onclick="introduce()">Запомнил, дальше</button>`;
-    if(S.settings.autoplay) setTimeout(()=>say(cur[0]),250);
-    return;
-  }
-  let front = m==='read' ? `<div class="hz big">${cur[0]}</div><div class="mut center">Что это значит? Как читается?</div>`
-    : m==='listen' ? `<div class="center"><button class="huge" onclick="say(cur[0])">🔊</button><div class="mut">Что это значит?</div></div>`
-    : `<div class="ru big center">${cur[2]}</div><div class="mut center">Вспомните иероглиф и произношение</div>`;
-  box.innerHTML = `<div id="front">${front}</div><button class="primary" id="showBtn" onclick="reveal()">Показать ответ</button>`;
-  if(m==='listen') setTimeout(()=>say(cur[0]),250);
-}
-function introduce(){
-  S.srs[cur[0]] = {i:0, e:2.5, d:Date.now(), r:0, l:0};
-  dayRec().nw++; save();
-  Q.shift(); Q.splice(Math.min(3,Q.length), 0, cur);
-  renderCard();
-}
-function reveal(){
-  $('#card').innerHTML = wordBack(cur,'c') + `<div class="mut center" style="margin-top:8px">Насколько хорошо вспомнили?</div>
-   <div class="rate"><button class="r0" onclick="rate(0)">Не помню</button><button class="r1" onclick="rate(1)">Трудно</button>
-   <button class="r2" onclick="rate(2)">Помню</button><button class="r3" onclick="rate(3)">Легко</button></div>`;
-  if(S.settings.autoplay && S.settings.mode!=='listen') say(cur[0]);
-}
-function grade(hz, g){
-  const now = Date.now(); const s = S.srs[hz] || {i:0,e:2.5,d:now,r:0,l:0};
-  if(g===0){ s.r=0; s.l++; s.i=0; s.e=Math.max(1.3,s.e-0.2); s.d=now; }
-  else{
-    if(g===1){ s.i = s.r===0 ? 0.5 : Math.max(1, s.i*1.2); s.e=Math.max(1.3,s.e-0.15); }
-    else if(g===2){ s.i = s.r===0 ? 1 : s.r===1 ? 3 : Math.round(s.i*s.e); }
-    else { s.i = s.r===0 ? 3 : Math.round(s.i*s.e*1.3)+1; s.e+=0.15; }
-    s.r++; s.d = now + s.i*DAY;
-  }
-  S.srs[hz] = s;
-}
-function rate(g){
-  grade(cur[0], g); dayRec().rev++; save();
-  Q.shift(); if(g===0) Q.splice(Math.min(3,Q.length), 0, cur);
-  renderCard();
-}
-function renderDict(f){
-  const el = $('#dict'); if(!el) return; f = (f||'').trim().toLowerCase();
-  const plain = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ /g,'');
-  el.innerHTML = WORDS.filter(w => !f || w[0].includes(f) || plain(w[1]).toLowerCase().includes(plain(f)) || w[2].toLowerCase().includes(f))
-    .map(w => { const s=S.srs[w[0]]; const cls = !s ? '' : (s.r>=1&&s.i>=3?'k':'l');
-      return `<div class="dict-row" onclick="say('${w[0]}')"><span class="dot ${cls}"></span><span class="hz">${colorHz(w[0],w[1])}</span><span class="py" style="min-width:90px">${colorPy(w[1])}</span><span>${w[2]}</span></div>`; }).join('');
-}
-
-/* ---- тест ---- */
-function startQuiz(){
-  const pool = WORDS.filter(w => S.srs[w[0]]);
-  if(pool.length < 4){ toast('Сначала познакомьтесь хотя бы с 4 словами в карточках'); return; }
-  const qs = shuffle(pool).slice(0,10).map(w => {
-    const others = shuffle(WORDS.filter(x => x!==w && x[2]!==w[2] && x[1]!==w[1])).slice(0,3);
-    return {w, type: pick(['read','listen','recall']), opts: shuffle([w].concat(others))};
-  });
-  QZ = {qs, i:0, ok:0, done:false}; renderQuiz();
-}
-function renderQuiz(){
-  const box=$('#card'); if(!box) return;
-  if(QZ.i >= QZ.qs.length){
-    const n=QZ.qs.length; box.innerHTML = `<div class="center"><div style="font-size:48px">${QZ.ok>=n*.8?'🏆':QZ.ok>=n*.5?'👍':'💪'}</div>
-     <b>Результат: ${QZ.ok} из ${n}</b><div class="mut">Ошибки отправлены на повторение.</div>
-     <button class="primary" onclick="QZ=null;wordsEnter()">К карточкам</button><button class="btn" onclick="startQuiz()" style="width:100%">Ещё тест</button></div>`;
-    return;
-  }
-  const q = QZ.qs[QZ.i]; QZ.done=false;
-  const head = q.type==='read' ? `<div class="hz big">${q.w[0]}</div><div class="mut center">Что значит?</div>`
-    : q.type==='listen' ? `<div class="center"><button class="huge" onclick="say(QZ.qs[QZ.i].w[0])">🔊</button><div class="mut">Что услышали?</div></div>`
-    : `<div class="ru big center">${q.w[2]}</div><div class="mut center">Выберите иероглиф</div>`;
-  const lab = o => q.type==='recall' ? `<span class="hz" style="font-size:28px">${o[0]}</span>` : o[2];
-  box.innerHTML = `<div class="mut">Вопрос ${QZ.i+1} из ${QZ.qs.length} · верно: ${QZ.ok}</div>${head}
-   <div class="opts" id="qzo">${q.opts.map((o,k)=>`<button onclick="qzAns(${k})">${lab(o)}</button>`).join('')}</div><div id="qzr" class="res"></div>`;
-  if(q.type==='listen') setTimeout(()=>say(q.w[0]),250);
-}
-function qzAns(k){
-  if(QZ.done) return; QZ.done=true;
-  const q=QZ.qs[QZ.i], right=q.opts.indexOf(q.w), ok=k===right, r=dayRec();
-  r.q++; if(ok){ r.qok++; QZ.ok++; } else { const s=S.srs[q.w[0]]; if(s){ s.l++; s.d=Date.now(); } }
-  save();
-  const bs=document.querySelectorAll('#qzo button'); bs[right].classList.add('ok'); if(!ok) bs[k].classList.add('bad');
-  say(q.w[0]);
-  $('#qzr').innerHTML = `<div class="center"><span class="hz mid">${colorHz(q.w[0],q.w[1])}</span> ${colorPy(q.w[1])} — ${q.w[2]}</div>
-   <button class="primary" onclick="QZ.i++;renderQuiz()">Дальше →</button>`;
-}
-
-/* ================= ФРАЗЫ ================= */
-let hideRu = false;
-function renderPhrases(){
-  let n=0;
-  $('#t-phrases').innerHTML = `<h2>Фразы для разговора</h2>
-   <div class="mut">Метод «тень»: включите фразу → сразу повторите вслух, копируя мелодию. 5 раз каждую. Потом 🎤 — проверка произношения.</div>
-   <label class="row" style="margin:10px 0"><input type="checkbox" ${hideRu?'checked':''} onchange="hideRu=this.checked;renderPhrases()"> Режим проверки: скрыть перевод (нажмите на фразу, чтобы открыть)</label>
-   <div class="${hideRu?'hideru':''}">${PHRASES.map(g=>`<h3>${g[0]}</h3>`+g[1].map(p=>{ const id='p'+(n++);
-     return `<div class="card phr" onclick="this.classList.add('open')"><div class="hz mid">${p[0]}</div><div class="py">${p[1]}</div><div class="ru">${p[2]}</div>
-      <div class="row" style="margin-top:6px" onclick="event.stopPropagation()"><button class="btn" onclick="say('${p[0]}')">🔊</button>
-      <button class="btn" onclick="slow('${p[0]}')">🐢 медленно</button><button class="btn" onclick="listen('${p[0]}','${id}')">🎤 скажи сам</button></div>
-      <div class="res" id="${id}"></div></div>`; }).join('')).join('')}</div>`;
-}
-
-/* ================= ЧТЕНИЕ ================= */
-const CHARMAP = (() => { const m={};
-  for(const w of WORDS){ const ch=[...w[0]], sy=w[1].split(' ');
-    if(ch.length===1) m[ch[0]] = {py:w[1], ru:w[2]};
-    else if(ch.length===sy.length) ch.forEach((c,i)=>{ if(!m[c]) m[c]={py:sy[i], ru:'из слова '+w[0]+' ('+pyJoin(w[1])+') — '+w[2]}; });
-  } return m; })();
-let showPy = true, showRu = false;
-function charTap(c){ say(c); const i=CHARMAP[c]; toast('<span class="hz" style="font-size:22px">'+c+'</span> '+(i?i.py+' — '+i.ru:''), 3500); }
-function renderRead(){
-  $('#t-read').innerHTML = `<h2>Иероглифы и чтение</h2>
-   <div class="card"><b>Как устроены иероглифы</b><div class="mut" style="margin-top:4px">
-    Иероглиф — это слог со смыслом. Многие произошли из рисунков (日 — солнце, 山 — гора). Сложные иероглифы собраны из частей: <b>ключ</b> подсказывает смысл, а другая часть — звучание.
-    Например, 妈 mā «мама» = 女 «женщина» (смысл) + 马 mǎ «лошадь» (звук). Знать ключи — значит быстрее запоминать.</div></div>
-   <h3>Иероглифы-картинки</h3><div class="mut">Нажмите — прозвучит; ✍ покажет порядок черт.</div>
-   <div class="grid" style="margin-top:8px">${PICTO.map(p=>`<div class="tile" onclick="say('${p[0]}')"><div class="hz">${colorHz(p[0],p[1])}</div><div class="py">${colorPy(p[1])}</div><div>${p[2]}</div><div class="mut">${p[3]}</div></div>`).join('')}</div>
-   <div class="card"><div class="row"><input type="text" id="sw" placeholder="Иероглиф для порядка черт, например 我" style="flex:1" maxlength="4">
-    <button class="btn" onclick="strokes($('#sw').value||'我','swo')">✍ черты</button><button class="btn" onclick="strokes($('#sw').value||'我','swo',true)">✏ написать</button></div><div id="swo" class="center"></div></div>
-   <h3>Главные ключи</h3>
-   <div class="card tw"><table><tr><th>Ключ</th><th>Смысл</th><th>В знакомых словах</th></tr>${RADICALS.map(r=>`<tr><td class="hz" style="font-size:26px">${r[0]}</td><td>${r[1]}</td><td class="hz" style="font-size:20px">${[...r[2].replace(/ /g,'')].map(c=>`<span class="ch" onclick="charTap('${c}')">${c}</span>`).join(' ')}</td></tr>`).join('')}</table></div>
-   <h3>Читаем предложения</h3>
-   <div class="row"><label><input type="checkbox" ${showPy?'checked':''} onchange="showPy=this.checked;renderRead()"> пиньинь</label>
-    <label style="margin-left:12px"><input type="checkbox" ${showRu?'checked':''} onchange="showRu=this.checked;renderRead()"> перевод</label></div>
-   <div class="mut">Сначала прочитайте сами, потом проверьте. Нажмите на иероглиф — подсказка.</div>
-   ${SENTENCES.map((s,i)=>`<div class="card"><div class="hz mid">${[...s[0]].map(c=>/[㐀-鿿]/.test(c)?`<span class="ch" onclick="charTap('${c}')">${c}</span>`:c).join('')}</div>
-    ${showPy?`<div class="py">${s[1]}</div>`:''}<div ${showRu?'':'hidden'} id="sr${i}">${s[2]}</div>
-    <div class="row" style="margin-top:6px"><button class="btn" onclick="say('${s[0]}')">🔊</button><button class="btn" onclick="slow('${s[0]}')">🐢</button>
-    ${showRu?'':`<button class="btn" onclick="$('#sr${i}').hidden=false">Показать перевод</button>`}
-    <button class="btn" onclick="listen('${s[0]}','sm${i}')">🎤</button></div><div class="res" id="sm${i}"></div></div>`).join('')}
-   <div class="card">Тренируйте чтение и в карточках: режим <b>«字 → смысл»</b> во вкладке «Слова». <button class="btn" onclick="S.settings.mode='read';show('words')">Перейти →</button></div>`;
-}
-
-/* ================= ПРОГРЕСС ================= */
-function renderStats(){
-  const c=counts(); const days=Object.keys(S.daily).sort().slice(-14);
-  const max=Math.max(1,...days.map(d=>(S.daily[d].rev||0)+(S.daily[d].nw||0)+(S.daily[d].q||0)));
-  const weak = WORDS.filter(w=>S.srs[w[0]] && S.srs[w[0]].l>0).sort((a,b)=>S.srs[b[0]].l-S.srs[a[0]].l).slice(0,10);
-  $('#t-stats').innerHTML = `<h2>📊 Прогресс</h2>
-   <div class="kpi"><div><b>${c.known}</b><span class="mut">выучено</span></div><div><b>${c.learn}</b><span class="mut">изучается</span></div>
-    <div><b>${c.fresh}</b><span class="mut">ещё впереди</span></div><div><b>${streak()}</b><span class="mut">дней подряд</span></div>
-    <div><b>${S.tone.all?Math.round(S.tone.ok/S.tone.all*100):0}%</b><span class="mut">тоны на слух</span></div>
-    <div><b>${S.pair.all?Math.round(S.pair.ok/S.pair.all*100):0}%</b><span class="mut">звуки на слух</span></div></div>
-   <div class="card"><b>Словарь HSK 1</b><div class="bar" style="margin:8px 0"><i style="width:${(c.known/WORDS.length*100).toFixed(1)}%"></i></div>
-    <div class="mut">${c.known} из ${WORDS.length} слов</div></div>
-   <div class="card"><b>Активность за 14 дней</b>${days.length?days.map(d=>{const r=S.daily[d], v=(r.rev||0)+(r.nw||0)+(r.q||0);
-     return `<div class="row" style="flex-wrap:nowrap"><span class="mut" style="width:52px">${d.slice(8)}.${d.slice(5,7)}</span><div class="bar" style="flex:1"><i style="width:${v/max*100}%"></i></div><span style="width:40px;text-align:right">${v}</span></div>`;}).join(''):'<div class="mut">Пока пусто</div>'}</div>
-   <div class="card"><b>Трудные слова</b>${weak.length?weak.map(w=>`<div class="dict-row" onclick="say('${w[0]}')"><span class="hz">${colorHz(w[0],w[1])}</span><span class="py">${colorPy(w[1])}</span><span>${w[2]}</span><span class="mut">✗${S.srs[w[0]].l}</span></div>`).join(''):'<div class="mut">Пока нет — отлично!</div>'}</div>
-   <div class="card"><b>Резервная копия прогресса</b><div class="mut">Прогресс хранится в этом браузере. Чтобы перенести на другое устройство: скопируйте текст и вставьте там.</div>
-    <textarea id="bk" rows="3" style="margin:8px 0" placeholder="Сюда вставить копию для загрузки"></textarea>
-    <div class="row"><button class="btn" onclick="$('#bk').value=JSON.stringify(S);$('#bk').select();toast('Выделено — скопируйте (Ctrl+C / «Копировать»)')">Получить копию</button>
-    <button class="btn" onclick="importBk()">Загрузить копию</button><button class="btn" id="rst" onclick="resetAll(this)">Сбросить всё</button></div></div>`;
-}
-function importBk(){ try{ const o=JSON.parse($('#bk').value); if(!o.srs) throw 0; S=Object.assign(S,o); save(); Q=[]; toast('✅ Прогресс загружен'); renderStats(); }catch(e){ toast('❌ Это не копия прогресса'); } }
-function resetAll(b){ if(!b.dataset.sure){ b.dataset.sure=1; b.textContent='Точно? Нажмите ещё раз'; b.style.color='var(--bad)'; return; }
-  const st=S.settings; S={srs:{},daily:{},tone:{ok:0,all:0},pair:{ok:0,all:0},settings:st,tab:'stats'}; Q=[]; save(); toast('Прогресс сброшен'); renderStats(); }
-
-/* ================= НАСТРОЙКИ ================= */
-function openSettings(){
-  const vs = ('speechSynthesis' in window) ? speechSynthesis.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang)) : [];
-  $('#sheet').innerHTML = `<h2>⚙ Настройки</h2>
-   <label>Скорость речи: <b id="rv">${S.settings.rate}</b></label>
-   <input type="range" min="0.4" max="1.2" step="0.1" value="${S.settings.rate}" style="width:100%" oninput="S.settings.rate=+this.value;$('#rv').textContent=this.value;save()">
-   <button class="btn" onclick="say('你好，我是你的汉语老师。')">🔊 Проверить голос</button>
-   <label style="display:block;margin-top:12px">Новых слов в день</label>
-   <select onchange="S.settings.newPerDay=+this.value;save();Q=[]">${[5,10,15,20,30].map(n=>`<option ${n===S.settings.newPerDay?'selected':''}>${n}</option>`).join('')}</select>
-   <label style="display:block;margin-top:12px">Голос</label>
-   <select onchange="S.settings.voice=this.value;save();pickVoice()"><option value="">авто</option>${vs.map(v=>`<option ${v.name===S.settings.voice?'selected':''} value="${v.name}">${v.name} (${v.lang})</option>`).join('')}</select>
-   ${vs.length?'':'<div class="warn" style="margin-top:6px">Китайских голосов не найдено — см. подсказку на вкладке «Старт».</div>'}
-   <label class="row" style="margin-top:12px"><input type="checkbox" ${S.settings.autoplay?'checked':''} onchange="S.settings.autoplay=this.checked;save()"> Автоматически озвучивать карточки</label>
-   <div class="mut" style="margin-top:12px">Версия ${APP.ver} от ${APP.date}. Распознавание речи: ${SR?'есть':'нет в этом браузере'}.</div>
-   <button class="primary" onclick="closeOvl()">Готово</button>`;
-  $('#ovl').hidden = false;
-}
-function closeOvl(){ $('#ovl').hidden = true; if(S.tab==='words') wordsEnter(); }
-
-/* ================= ЗАПУСК ================= */
-load();
-$('#ver').textContent = 'v'+APP.ver+' · '+APP.date;
-try { show('home'); } catch(e) { S.tab='home'; window.onerror(e.message, '', 0, 0); }
+if('serviceWorker' in navigator && location.protocol==='https:'){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
 </script>
 </body>
 </html>
