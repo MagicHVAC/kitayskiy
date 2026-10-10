@@ -122,8 +122,17 @@ svg.curve{width:120px;height:64px}
 <div id="ovl" hidden onclick="if(event.target===this)closeOvl()"><div class="sheet" id="sheet"></div></div>
 
 <script>
+window.onerror = function(m, s, l, c){
+  var b = document.getElementById('errbox');
+  if(!b){ b = document.createElement('div'); b.id = 'errbox';
+    b.style.cssText = 'margin:12px 0;padding:10px;border:2px solid #c62828;border-radius:10px;color:#c62828;font:14px monospace;white-space:pre-wrap';
+    document.querySelector('main').insertBefore(b, document.querySelector('main').firstChild); }
+  b.textContent += 'Ошибка: ' + m + ' (строка ' + l + ':' + c + ')\n' + navigator.userAgent + '\n';
+};
+</script>
+<script>
 'use strict';
-const APP = {ver:'1.0.0', date:'10.10.2026'};
+const APP = {ver:'1.0.1', date:'10.10.2026'};
 
 /* ================= ДАННЫЕ ================= */
 // Словарь уровня HSK 1: [иероглифы, пиньинь по слогам через пробел, перевод]
@@ -708,7 +717,7 @@ function closeOvl(){ $('#ovl').hidden = true; if(S.tab==='words') wordsEnter(); 
 /* ================= ЗАПУСК ================= */
 load();
 $('#ver').textContent = 'v'+APP.ver+' · '+APP.date;
-show(['home','sounds','words','phrases','read','stats'].includes(S.tab) ? S.tab : 'home');
+try { show('home'); } catch(e) { S.tab='home'; window.onerror(e.message, '', 0, 0); }
 </script>
 </body>
 </html>
